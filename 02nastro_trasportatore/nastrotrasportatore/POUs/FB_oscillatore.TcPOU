@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_oscillatore" Id="{7580cf34-4860-45e9-a2c0-821a036842e7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_oscillatore
+VAR_INPUT
+	enable	: BOOL;
+	t_high	: TIME;
+	t_low	: TIME;
+END_VAR
+VAR_OUTPUT
+	q		: BOOL;
+END_VAR
+VAR
+	t1		: TON();
+	t2		: TON();
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[t1(in := enable AND NOT t2.Q, pt := t_low);
+t2(in := t1.Q, pt := t_high);
+//comando dell'uscita dell'oscillatore
+q := t1.Q;]]></ST>
+    </Implementation>
+    <LineIds Name="FB_oscillatore">
+      <LineId Id="9" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_MSF" Id="{b2749a8e-1bc2-4d29-a872-7e6b9cb95f1a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_MSF
+//elenco parametri d'ingresso
+VAR_INPUT
+start: BOOL;
+stop : BOOL;
+emg  : BOOL;
+ack  : BOOL;
+fc1  : BOOL;
+fc2  : BOOL;
+END_VAR
+
+//l’elenco dei parametri di uscita:
+VAR_OUTPUT
+H1   : BOOL;
+HEMG : BOOL;
+M    : BOOL;
+// il nastro è libero
+libero : BOOL; 
+END_VAR
+
+//e l’area delle variabili locali:
+VAR
+
+// abilitazione dell’automatismo
+enable : BOOL;
+
+// condizioni di transizione
+tr_S0_S1 : BOOL;
+tr_S1_S2 : BOOL;
+tr_S2_S3 : BOOL;
+tr_S3_S1 : BOOL;
+tr_S3_S0 : BOOL;
+tr_SE_SA : BOOL;
+tr_SA_S0 : BOOL;
+
+// variabile di stato
+stato : STATI := STATI.S0;
+
+// timers
+T31   : TON();
+TA0   : TON();
+
+// triggers per segnalazione nastro libero
+pckin : R_TRIG();
+pckout: R_TRIG();
+
+// lampeggio
+osc  : FB_oscillatore();
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//
+//1.aggiornamento delle condizioni di abilitazione (stop, allarmi, etc)
+enable := stop AND emg;
+
+//2.aggiornamento di timers, contatori, triggers sui fronti
+T31(IN := (stato = STATI.S3 AND enable), PT := T#10S );
+TA0(IN := (stato = STATI.SA), PT := T#10S );
+pckin(clk:= fc1);
+pckout(clk:= fc2);
+osc(enable := (stato = STATI.SA), t_high := T#500mS, t_low := T#500ms);
+
+//3.condizione di arresto nominale
+IF NOT stop AND emg THEN
+	stato := STATI.S0;
+END_IF
+
+//4.valutazione della condizione di arresto di emergenza
+IF NOT emg THEN
+stato := STATI.SE;
+END_IF
+
+//5.aggiornamento delle condizioni di transizione di stato
+tr_S0_S1 := enable AND start;
+tr_S1_S2 := enable AND fc1 AND NOT fc2;
+tr_S2_S3 := enable AND fc2;
+tr_S3_S1 := enable AND fc1 AND NOT fc2 AND NOT T31.Q;
+tr_S3_S0 := enable AND T31.Q;
+tr_SE_SA := enable AND ack;
+tr_SA_S0 := enable AND TA0.Q;
+
+//6.switch-CASE della MSF
+
+	CASE stato OF
+STATI.S0:    
+IF tr_S0_S1 THEN
+stato := STATI.S1;
+END_IF
+STATI.S1:    
+IF tr_S1_S2 THEN
+stato := STATI.S2;
+END_IF
+STATI.S2:    
+IF tr_S2_S3 THEN
+        stato := STATI.S3;    
+END_IF
+STATI.S3:    
+IF tr_S3_S1 THEN
+stato := STATI.S1;
+ELSIF tr_S3_S0 THEN
+stato := STATI.S0;
+END_IF
+STATI.SE:    
+IF tr_SE_SA THEN
+stato := STATI.SA;
+END_IF
+STATI.SA:    
+IF tr_SA_S0 THEN
+stato := STATI.S0;
+END_IF
+ELSE
+stato := STATI.SE;
+END_CASE
+
+//7.comando delle uscite
+H1 := stato <> STATI.S0;
+HEMG := (stato = STATI.SE) OR osc.q;
+M := (stato = STATI.S2) OR (stato = STATI.S3);
+
+// nastro libero se (enable = true e  pckout.q) o (fc1 libero in S1);
+// nastro occupato se enable = false o fc1.rise o stato = S0
+IF (enable AND (pckout.q)) OR (stato = STATI.S1 AND NOT fc1) THEN
+libero := TRUE;
+ELSIF (NOT enable) OR pckin.Q OR stato = STATI.S0 THEN
+libero := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_MSF">
+      <LineId Id="57" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="106" Count="0" />
+      <LineId Id="268" Count="0" />
+      <LineId Id="270" Count="2" />
+      <LineId Id="269" Count="0" />
+      <LineId Id="212" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="55" Count="1" />
+      <LineId Id="211" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="151" Count="0" />
+      <LineId Id="214" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="67" Count="0" />
+      <LineId Id="154" Count="4" />
+      <LineId Id="153" Count="0" />
+      <LineId Id="215" Count="0" />
+      <LineId Id="63" Count="0" />
+      <LineId Id="273" Count="0" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="76" Count="3" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="91" Count="1" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="101" Count="1" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="323" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="324" Count="0" />
+      <LineId Id="96" Count="0" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="216" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="69" Count="0" />
+      <LineId Id="159" Count="1" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="162" Count="0" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="163" Count="0" />
+      <LineId Id="165" Count="1" />
+      <LineId Id="168" Count="0" />
+      <LineId Id="161" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
