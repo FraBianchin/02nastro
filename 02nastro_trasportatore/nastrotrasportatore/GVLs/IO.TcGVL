@@ -10,6 +10,7 @@ VAR_GLOBAL
 	ack  : BOOL;
 	fc1  : BOOL;
 	fc2  : BOOL;
+	fc3  : BOOL;
 //uscite verso il campo
 	H1   : BOOL;
 	HEMG : BOOL;
