@@ -10,7 +10,7 @@
 		</System>
 		<Plc>
 			<Project GUID="{C937161B-033D-4275-BCEA-E2DDBE8AFFCC}" Name="nastrotrasportatore" PrjFilePath="nastrotrasportatore\nastrotrasportatore.plcproj" TmcFilePath="nastrotrasportatore\nastrotrasportatore.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{84AF7B60-1C80-3151-8256-35D8D50D7ADA}">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="nastrotrasportatore\nastrotrasportatore.tmc" TmcHash="{46A40939-C821-9C6A-E374-8F2418A13B89}">
 					<Name>nastrotrasportatore Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Contexts>
